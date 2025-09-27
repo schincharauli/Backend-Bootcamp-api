@@ -20,10 +20,10 @@ const userSchema = new Schema({
     required: true,
     unique: true,
   },
-  age: {
-    type: Number,
-    required: true,
-  },
+  // age: {
+  //   type: Number,
+  //   required: true,
+  // },
 });
 
 const User = model("User", userSchema);
