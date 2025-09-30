@@ -1,3 +1,4 @@
+import { registrationWelcome } from "../mail/index.js";
 import User from "../models/user.js";
 
 export const getAllUsers = async (req, res) => {
@@ -18,6 +19,8 @@ export const createUser = async (req, res) => {
 
     const newUser = new User({ name, email });
     await newUser.save();
+
+    await registrationWelcome(email, name);
     return res.status(201).json(newUser);
   } catch (error) {
     return res.status(500).json({ message: "error creating user" });
