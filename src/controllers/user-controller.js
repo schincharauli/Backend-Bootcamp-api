@@ -1,5 +1,7 @@
 import { registrationWelcome } from "../mail/index.js";
 import User from "../models/user.js";
+import bicrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
 export const getAllUsers = async (req, res) => {
   try {
@@ -11,15 +13,17 @@ export const getAllUsers = async (req, res) => {
 };
 
 export const createUser = async (req, res) => {
-  const { name, email } = req.body;
+  const { name, email, password } = req.body;
   try {
     if (!name || !email) {
       return res.status(400).json({ message: "name and email are required" });
     }
 
-    const newUser = new User({ name, email });
-    await newUser.save();
+    const salt = await bicrypt.genSalt(10);
+    const hasshedPassword = await bicrypt.hash(password, salt);
 
+    const newUser = new User({ name, email, password: hasshedPassword });
+    await newUser.save();
     await registrationWelcome(email, name);
     return res.status(201).json(newUser);
   } catch (error) {
@@ -62,4 +66,28 @@ export const deleteUser = async (req, res) => {
     console.error(error);
     return res.status(500).json({ message: "error updating user" });
   }
+};
+
+export const loginUser = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    const user = await User.findOne({ email }).select("+password");
+    if (!user) {
+      return res.status(404).json({ message: "user not found" });
+    }
+
+    const isPasswordValid = await bicrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: "invalid credentials" });
+    }
+
+    const payload = { id: user._id, email: user.email };
+    const token = jwt.sign(payload, process.env.JWT_SECRET, {
+      expiresIn: "1h",
+    });
+
+    console.log("token", token);
+    return res.status(200).json({ message: "login successful", user, token });
+  } catch (error) {}
 };
