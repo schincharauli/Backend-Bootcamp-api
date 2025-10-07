@@ -13,6 +13,8 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
+app.use("/images", express.static("public/images"));
+
 app.listen(4444);
 
 app.use("/api", noteRouter);
