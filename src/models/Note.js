@@ -1,20 +1,16 @@
 import { Schema, model } from "mongoose";
 import { v4 as uuidv4 } from "uuid";
 
-const userSchema = new Schema({
-  name: {
+const noteSchema = new Schema({
+  title: {
     type: String,
     required: true,
   },
-  email: {
+  text: {
     type: String,
     required: true,
   },
-  password: {
-    type: String,
-    required: true,
-  },
-  image: {
+  userId: {
     type: String,
     required: true,
   },
@@ -26,6 +22,6 @@ const userSchema = new Schema({
   },
 });
 
-const User = model("User", userSchema);
+const Note = model("Note", noteSchema);
 
-export default User;
+export default Note;

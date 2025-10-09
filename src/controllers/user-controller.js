@@ -2,6 +2,7 @@ import { registrationWelcome } from "../mail/index.js";
 import User from "../models/user.js";
 import bicrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import addUserSchema from "../schemas/add-user.schema.js";
 
 export const getAllUsers = async (req, res) => {
   try {
@@ -13,16 +14,22 @@ export const getAllUsers = async (req, res) => {
 };
 
 export const createUser = async (req, res) => {
-  const { name, email, password } = req.body;
+  const { body } = req;
   const file = req.file;
   try {
     if (!file) {
       return res.status(400).json({ message: "avatar image is required" });
     }
     const imageUrl = "/images" + file.filename;
-    if (!name || !email) {
-      return res.status(400).json({ message: "name and email are required" });
+
+    const validator = addUserSchema();
+    const { error, value } = validator.validate(body);
+
+    if (error) {
+      return res.status(400).json({ message: error.details[0].message });
     }
+
+    const { name, email, password } = value;
 
     const salt = await bicrypt.genSalt(10);
     const hasshedPassword = await bicrypt.hash(password, salt);
